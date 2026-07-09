@@ -45,22 +45,20 @@ import {
 import { parseOscTitleContext, writeOscTitleBestEffort } from "./notify/title"
 
 interface NotifyConfig {
-	/** Notify for child/sub-session events (default: false) */
+	enabled: boolean
 	notifyChildSessions: boolean
-	/** Sound configuration per event type */
+	notifyOnIdle: boolean
 	sounds: {
 		idle: string
 		error: string
 		permission: string
 		question?: string
 	}
-	/** Quiet hours configuration */
 	quietHours: {
 		enabled: boolean
-		start: string // "HH:MM" format
-		end: string // "HH:MM" format
+		start: string
+		end: string
 	}
-	/** Override terminal detection (optional) */
 	terminal?: string
 }
 
@@ -71,7 +69,9 @@ interface TerminalInfo {
 }
 
 const DEFAULT_CONFIG: NotifyConfig = {
+	enabled: true,
 	notifyChildSessions: false,
+	notifyOnIdle: true,
 	sounds: {
 		idle: "Glass",
 		error: "Basso",
@@ -105,29 +105,34 @@ const TERMINAL_PROCESS_NAMES: Record<string, string> = {
 // ==========================================
 
 async function loadConfig(): Promise<NotifyConfig> {
-	const configPath = path.join(os.homedir(), ".config", "opencode", "kdco-notify.json")
+	const configDir = path.join(os.homedir(), ".config", "opencode")
+	const preferredPath = path.join(configDir, "opencode-notify.json")
+	const legacyPath = path.join(configDir, "kdco-notify.json")
 
-	try {
-		const content = await fs.readFile(configPath, "utf8")
-		const userConfig = JSON.parse(content) as Partial<NotifyConfig>
+	const candidates = [preferredPath, legacyPath]
+	for (const configPath of candidates) {
+		try {
+			const content = await fs.readFile(configPath, "utf8")
+			const userConfig = JSON.parse(content) as Partial<NotifyConfig>
 
-		// Merge with defaults
-		return {
-			...DEFAULT_CONFIG,
-			...userConfig,
-			sounds: {
-				...DEFAULT_CONFIG.sounds,
-				...userConfig.sounds,
-			},
-			quietHours: {
-				...DEFAULT_CONFIG.quietHours,
-				...userConfig.quietHours,
-			},
+			return {
+				...DEFAULT_CONFIG,
+				...userConfig,
+				sounds: {
+					...DEFAULT_CONFIG.sounds,
+					...userConfig.sounds,
+				},
+				quietHours: {
+					...DEFAULT_CONFIG.quietHours,
+					...userConfig.quietHours,
+				},
+			}
+		} catch {
+			continue
 		}
-	} catch {
-		// Config doesn't exist or is invalid, use defaults
-		return DEFAULT_CONFIG
 	}
+
+	return DEFAULT_CONFIG
 }
 
 // ==========================================
@@ -180,20 +185,7 @@ async function detectTerminalInfo(config: NotifyConfig): Promise<TerminalInfo> {
 	}
 }
 
-async function isTerminalFocused(terminalInfo: TerminalInfo): Promise<boolean> {
-	if (!terminalInfo.processName) return false
-	if (process.platform !== "darwin") return false
 
-	const frontmost = await getFrontmostApp()
-	if (!frontmost) return false
-
-	// Case-insensitive comparison
-	return frontmost.toLowerCase() === terminalInfo.processName.toLowerCase()
-}
-
-// ==========================================
-// QUIET HOURS CHECK
-// ==========================================
 
 function isQuietHours(config: NotifyConfig): boolean {
 	if (!config.quietHours.enabled) return false
@@ -204,10 +196,13 @@ function isQuietHours(config: NotifyConfig): boolean {
 	const [startHour, startMin] = config.quietHours.start.split(":").map(Number)
 	const [endHour, endMin] = config.quietHours.end.split(":").map(Number)
 
+	if (startHour == null || startMin == null || endHour == null || endMin == null) {
+		return false
+	}
+
 	const startMinutes = startHour * 60 + startMin
 	const endMinutes = endHour * 60 + endMin
 
-	// Handle overnight quiet hours (e.g., 22:00 - 08:00)
 	if (startMinutes > endMinutes) {
 		return currentMinutes >= startMinutes || currentMinutes < endMinutes
 	}
@@ -240,6 +235,7 @@ interface NotificationOptions {
 	subtitle?: string
 	cmuxBody?: string
 	sound: string
+	eventKind: import("./notify/backend").NotificationEventKind
 	terminalInfo: TerminalInfo
 }
 
@@ -383,23 +379,17 @@ function buildPermissionEventDedupeKey(properties: unknown): string | null {
 }
 
 async function sendDesktopNotification(options: NotificationOptions): Promise<void> {
-	const { title, message, sound, terminalInfo } = options
-
-	// Base notification options
-	const notifyOptions: Record<string, unknown> = {
-		title,
-		message,
-		sound,
-	}
+	const { title, message, subtitle, sound, eventKind, terminalInfo } = options
 
 	await sendDesktopNotificationByPlatform({
 		platform: process.platform,
 		title,
 		message,
-		subtitle: options.subtitle,
+		subtitle,
 		sound,
 		senderBundleId: terminalInfo.bundleId,
-		sendNodeNotifierNotification: () => notifier.notify(notifyOptions),
+		eventKind,
+		sendNodeNotifierNotification: (notifyOptions) => notifier.notify(notifyOptions),
 	})
 }
 
@@ -463,6 +453,7 @@ async function handleSessionIdle(
 			subtitle: sessionTitle,
 			cmuxBody: "OpenCode task is ready for review",
 			sound: config.sounds.idle,
+			eventKind: "idle",
 			terminalInfo,
 		},
 		notificationRuntime,
@@ -496,6 +487,7 @@ async function handleSessionError(
 			title: "Something went wrong",
 			message: errorMessage,
 			sound: config.sounds.error,
+			eventKind: "error",
 			terminalInfo,
 		},
 		notificationRuntime,
@@ -521,6 +513,7 @@ async function handlePermissionUpdated(
 			title: "Waiting for you",
 			message: "OpenCode needs your input",
 			sound: config.sounds.permission,
+			eventKind: "permission",
 			terminalInfo,
 		},
 		notificationRuntime,
@@ -542,10 +535,105 @@ async function handleQuestionAsked(
 			title: "Question for you",
 			message: "OpenCode needs your input",
 			sound,
+			eventKind: "question",
 			terminalInfo,
 		},
 		notificationRuntime,
 	)
+}
+
+// ==========================================
+// FOCUS DETECTION
+// ==========================================
+
+async function getX11ActiveWindowClass(): Promise<string | null> {
+	try {
+		const rootProc = Bun.spawn(["xprop", "-root", "_NET_ACTIVE_WINDOW"], { stdout: "pipe", stderr: "pipe" })
+		const rootOutput = await new Response(rootProc.stdout).text()
+		const match = rootOutput.match(/#\s*(0x[0-9a-fA-F]+|\d+)/)
+		if (!match) return null
+
+		const windowId = match[1] as string
+		const classProc = Bun.spawn(["xprop", "-id", windowId, "WM_CLASS"], { stdout: "pipe", stderr: "pipe" })
+		const classOutput = await new Response(classProc.stdout).text()
+		const classes = classOutput.match(/"([^"]+)"/g)
+		if (!classes || classes.length === 0) return null
+
+		const lastClass = classes[classes.length - 1]
+		if (!lastClass) return null
+
+		return lastClass.replace(/"/g, "")
+	} catch {
+		return null
+	}
+}
+
+async function getWaylandActiveWindowClass(): Promise<string | null> {
+	try {
+		const proc = Bun.spawn(["swaymsg", "-t", "get_tree"], { stdout: "pipe", stderr: "pipe" })
+		const output = await new Response(proc.stdout).text()
+		const data = JSON.parse(output) as unknown
+
+		function findFocused(node: unknown): string | null {
+			if (!node || typeof node !== "object") return null
+			const record = node as Record<string, unknown>
+			if (record.focused === true) {
+				return typeof record.app_id === "string"
+					? record.app_id
+					: typeof record.window_properties === "object" && record.window_properties !== null
+						? ((record.window_properties as Record<string, unknown>).class as string | undefined) ?? null
+						: null
+			}
+
+			for (const value of Object.values(record)) {
+				if (Array.isArray(value)) {
+					for (const item of value) {
+						const found = findFocused(item)
+						if (found) return found
+					}
+				}
+			}
+			return null
+		}
+
+		return findFocused(data)
+	} catch {
+		return null
+	}
+}
+
+async function getHyprlandActiveWindowClass(): Promise<string | null> {
+	try {
+		const proc = Bun.spawn(["hyprctl", "activewindow", "-j"], { stdout: "pipe", stderr: "pipe" })
+		const output = await new Response(proc.stdout).text()
+		const data = JSON.parse(output) as { class?: string }
+		return data.class ?? null
+	} catch {
+		return null
+	}
+}
+
+async function getLinuxActiveWindowClass(): Promise<string | null> {
+	if (process.platform !== "linux") return null
+
+	return (await getX11ActiveWindowClass()) ?? (await getWaylandActiveWindowClass()) ?? (await getHyprlandActiveWindowClass())
+}
+
+async function isTerminalFocused(terminalInfo: TerminalInfo): Promise<boolean> {
+	if (!terminalInfo.processName) return false
+	if (process.platform !== "darwin") {
+		const activeClass = await getLinuxActiveWindowClass()
+		if (!activeClass) return false
+
+		const lowerActive = activeClass.toLowerCase()
+		const lowerProcess = terminalInfo.processName.toLowerCase()
+		return lowerActive === lowerProcess || lowerActive.includes(lowerProcess)
+	}
+
+	const frontmost = await getFrontmostApp()
+	if (!frontmost) return false
+
+	return frontmost.toLowerCase() === terminalInfo.processName.toLowerCase()
 }
 
 // ==========================================
@@ -555,10 +643,11 @@ async function handleQuestionAsked(
 const NotifyPlugin: Plugin = async (ctx) => {
 	const { client } = ctx
 
-	// Load config once at startup
 	const config = await loadConfig()
+	if (!config.enabled) {
+		return {}
+	}
 
-	// Detect terminal once at startup (cached for performance)
 	const terminalInfo = await detectTerminalInfo(config)
 	const cmuxCommand = resolveCmuxNotificationCommand()
 	const notificationRuntime: NotificationRuntime = {
@@ -908,6 +997,8 @@ const NotifyPlugin: Plugin = async (ctx) => {
 	}
 
 	const notifySessionReadyIfNeeded = async (sessionID: unknown): Promise<void> => {
+		if (!config.notifyOnIdle) return
+
 		const normalizedSessionID = toNonEmptyString(sessionID)
 		if (!normalizedSessionID) return
 

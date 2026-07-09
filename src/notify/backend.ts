@@ -1,3 +1,5 @@
+export type NotificationEventKind = "idle" | "error" | "permission" | "question"
+
 interface NotifyBackendOptions {
 	preferCmux: boolean
 	tryCmuxNotify: () => Promise<boolean>
@@ -10,11 +12,34 @@ export interface DesktopNotificationOptions {
 	subtitle?: string
 	sound?: string
 	senderBundleId?: string | null
+	eventKind?: NotificationEventKind
+}
+
+export interface NodeNotifierLinuxOptions {
+	title: string
+	message: string
+	icon: string
+	urgency: "low" | "normal" | "critical"
+	category: string
+	"app-name": string
+	hint: string
+}
+
+export interface NodeNotifierOptions {
+	title: string
+	message: string
+	subtitle?: string
+	sound?: string
+	icon?: string
+	urgency?: "low" | "normal" | "critical"
+	category?: string
+	"app-name"?: string
+	hint?: string
 }
 
 interface DesktopNotificationRouterOptions extends DesktopNotificationOptions {
 	platform: NodeJS.Platform | string
-	sendNodeNotifierNotification: () => void
+	sendNodeNotifierNotification: (options: NodeNotifierOptions) => void | Promise<void>
 	sendMacOSNotification?: (options: DesktopNotificationOptions) => Promise<boolean>
 }
 
@@ -79,17 +104,114 @@ export async function sendMacOSAlerterNotification(
 	}
 }
 
+const MACOS_SOUND_BY_EVENT: Record<NotificationEventKind, string> = {
+	idle: "Glass",
+	error: "Basso",
+	permission: "Submarine",
+	question: "Submarine",
+}
+
+const LINUX_SOUND_BY_EVENT: Record<NotificationEventKind, string> = {
+	idle: "complete",
+	error: "dialog-error",
+	permission: "bell",
+	question: "bell",
+}
+
+const LINUX_ICON_BY_EVENT: Record<NotificationEventKind, string> = {
+	idle: "dialog-information",
+	error: "dialog-error",
+	permission: "dialog-warning",
+	question: "dialog-information",
+}
+
+const LINUX_URGENCY_BY_EVENT: Record<NotificationEventKind, "low" | "normal" | "critical"> = {
+	idle: "low",
+	error: "critical",
+	permission: "normal",
+	question: "normal",
+}
+
+const SOUND_NAME_ALIASES: Record<string, string> = {
+	Glass: "Glass",
+	Basso: "Basso",
+	Submarine: "Submarine",
+	Blow: "Blow",
+	Bottle: "Bottle",
+	Frog: "Frog",
+	Funk: "Funk",
+	Hero: "Hero",
+	Morse: "Morse",
+	Ping: "Ping",
+	Pop: "Pop",
+	Purr: "Purr",
+	Sosumi: "Sosumi",
+	Tink: "Tink",
+	complete: "complete",
+	"dialog-error": "dialog-error",
+	"dialog-warning": "dialog-warning",
+	bell: "bell",
+	"message-new-instant": "message-new-instant",
+}
+
+export function resolveSoundName(
+	platform: NodeJS.Platform | string,
+	requestedSound: string | undefined,
+	eventKind: NotificationEventKind | undefined,
+): string | undefined {
+	const canonicalRequested = requestedSound ? SOUND_NAME_ALIASES[requestedSound] : undefined
+	if (canonicalRequested) {
+		return canonicalRequested
+	}
+
+	if (eventKind) {
+		return platform === "darwin" ? MACOS_SOUND_BY_EVENT[eventKind] : LINUX_SOUND_BY_EVENT[eventKind]
+	}
+
+	return undefined
+}
+
+function buildLinuxHint(soundName: string): string {
+	return `string:sound-name:${soundName}`
+}
+
+function buildLinuxNodeNotifierOptions(
+	options: DesktopNotificationOptions,
+): NodeNotifierLinuxOptions {
+	const eventKind = options.eventKind ?? "idle"
+	const sound = resolveSoundName("linux", options.sound, eventKind) ?? LINUX_SOUND_BY_EVENT[eventKind]
+
+	return {
+		title: options.title,
+		message: options.message,
+		icon: LINUX_ICON_BY_EVENT[eventKind],
+		urgency: LINUX_URGENCY_BY_EVENT[eventKind],
+		category: "im.received",
+		"app-name": "OpenCode",
+		hint: buildLinuxHint(sound),
+	}
+}
+
 export async function sendDesktopNotificationByPlatform(
 	options: DesktopNotificationRouterOptions,
 ): Promise<void> {
-	const { platform, sendNodeNotifierNotification, sendMacOSNotification, ...notificationOptions } = options
+	const {
+		platform,
+		sendNodeNotifierNotification,
+		sendMacOSNotification,
+		eventKind,
+		...notificationOptions
+	} = options
 
 	if (platform === "darwin") {
-		await (sendMacOSNotification ?? sendMacOSAlerterNotification)(notificationOptions)
+		await (sendMacOSNotification ?? sendMacOSAlerterNotification)({
+			...notificationOptions,
+			sound: resolveSoundName(platform, notificationOptions.sound, eventKind),
+		})
 		return
 	}
 
-	sendNodeNotifierNotification()
+	await sendNodeNotifierNotification(buildLinuxNodeNotifierOptions(options))
 }
 
 export async function sendNotificationWithFallback(options: NotifyBackendOptions): Promise<void> {
