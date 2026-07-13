@@ -1,3 +1,5 @@
+import { resolveTrustedExecutable, sanitizeNotificationText } from "../security"
+
 export type NotificationEventKind = "idle" | "error" | "permission" | "question"
 
 interface NotifyBackendOptions {
@@ -57,10 +59,16 @@ const ALERTER_INSTALL_HINT =
 	"install vjeantet/alerter (brew install vjeantet/tap/alerter) and ensure it is on PATH"
 
 export function buildAlerterArguments(options: DesktopNotificationOptions): string[] {
-	const argv = ["alerter", "--message", options.message, "--title", options.title]
+	const argv = [
+		"alerter",
+		"--message",
+		sanitizeNotificationText(options.message),
+		"--title",
+		sanitizeNotificationText(options.title),
+	]
 
 	if (options.subtitle) {
-		argv.push("--subtitle", options.subtitle)
+		argv.push("--subtitle", sanitizeNotificationText(options.subtitle))
 	}
 
 	if (options.sound) {
@@ -78,13 +86,13 @@ export async function sendMacOSAlerterNotification(
 	options: DesktopNotificationOptions,
 	runtime: AlerterRuntime = {},
 ): Promise<boolean> {
-	const which = runtime.which ?? Bun.which
+	const which = runtime.which ?? ((command: string) => resolveTrustedExecutable(command) ?? null)
 	const warn = runtime.warn ?? console.warn
 
 	try {
 		const alerterPath = await which("alerter")
 		if (!alerterPath) {
-			warn(`notify: macOS desktop notification skipped; alerter not found on PATH (${ALERTER_INSTALL_HINT}).`)
+			warn(`notify: macOS desktop notification skipped; alerter not found on PATH or untrusted (${ALERTER_INSTALL_HINT}).`)
 			return false
 		}
 
@@ -182,8 +190,8 @@ function buildLinuxNodeNotifierOptions(
 	const sound = resolveSoundName("linux", options.sound, eventKind) ?? LINUX_SOUND_BY_EVENT[eventKind]
 
 	return {
-		title: options.title,
-		message: options.message,
+		title: sanitizeNotificationText(options.title),
+		message: sanitizeNotificationText(options.message),
 		icon: LINUX_ICON_BY_EVENT[eventKind],
 		urgency: LINUX_URGENCY_BY_EVENT[eventKind],
 		category: "im.received",

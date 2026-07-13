@@ -7,7 +7,10 @@
       "name": "kdco-notify",
       "description": "Native desktop notifications with terminal detection and focus awareness",
       "type": "ocx:plugin",
-      "npmDependencies": ["node-notifier", "detect-terminal"],
+      "npmDependencies": [
+        "node-notifier@^10.0.1",
+        "detect-terminal@3.0.0"
+      ],
       "files": [
         {
           "path": "src/kdco-notify.ts",

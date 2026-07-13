@@ -11,6 +11,7 @@
 import * as crypto from "node:crypto"
 import { stat } from "node:fs/promises"
 import * as path from "node:path"
+import { resolveTrustedExecutable } from "../../security"
 import { logWarn } from "./log-warn"
 import type { OpencodeClient } from "./types"
 import { TimeoutError, withTimeout } from "./with-timeout"
@@ -86,7 +87,7 @@ export async function getProjectId(projectRoot: string, client?: OpencodeClient)
 		}
 
 		// Resolve path (handles both relative and absolute)
-		const gitdirPath = match[1].trim()
+		const gitdirPath = match[1]?.trim() ?? ""
 		const resolvedGitdir = path.resolve(projectRoot, gitdirPath)
 
 		// The gitdir contains a 'commondir' file pointing to shared .git
@@ -121,9 +122,15 @@ export async function getProjectId(projectRoot: string, client?: OpencodeClient)
 		logWarn(client, "project-id", `Invalid cache content at ${cacheFile}, regenerating`)
 	}
 
+	const gitExecutable = resolveTrustedExecutable("git")
+	if (!gitExecutable) {
+		logWarn(client, "project-id", "git not found on PATH or untrusted; using path hash")
+		return hashPath(projectRoot)
+	}
+
 	// Generate project ID from git root commit
 	try {
-		const proc = Bun.spawn(["git", "rev-list", "--max-parents=0", "--all"], {
+		const proc = Bun.spawn([gitExecutable, "rev-list", "--max-parents=0", "--all"], {
 			cwd: projectRoot,
 			stdout: "pipe",
 			stderr: "pipe",
@@ -149,8 +156,8 @@ export async function getProjectId(projectRoot: string, client?: OpencodeClient)
 				.map((x) => x.trim())
 				.sort()
 
-			if (roots.length > 0 && /^[a-f0-9]{40}$/i.test(roots[0])) {
-				const projectId = roots[0]
+			if (roots.length > 0 && /^[a-f0-9]{40}$/i.test(roots[0] ?? "")) {
+				const projectId = roots[0] as string
 				// Cache the result
 				try {
 					await Bun.write(cacheFile, projectId)

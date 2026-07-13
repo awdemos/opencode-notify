@@ -2,6 +2,7 @@ import * as fs from "node:fs"
 import * as os from "node:os"
 import * as path from "node:path"
 import { canUseCmuxWorkflow } from "../kdco-primitives/cmux"
+import { isTrustedExecutablePath, sanitizeNotificationText } from "../security"
 import { TimeoutError, withTimeout } from "../kdco-primitives/with-timeout"
 
 interface CmuxNotificationPayload {
@@ -100,9 +101,12 @@ function isTrustedCmuxCommandPath(
 		return resolvedRoot !== path.parse(resolvedRoot).root
 	})
 
-	return !filteredUntrustedRoots.some((root) =>
+	const isUnderUntrustedRoot = filteredUntrustedRoots.some((root) =>
 		[apparentCandidate, realCandidate].some((candidate) => isPathAtOrInside(root, candidate)),
 	)
+	if (isUnderUntrustedRoot) return false
+
+	return isTrustedExecutablePath(candidatePath)
 }
 
 export function resolveCmuxNotificationCommand(
@@ -123,14 +127,14 @@ export function resolveCmuxNotificationCommand(
 }
 
 export function buildCmuxNotifyArgs(payload: CmuxNotificationPayload): string[] {
-	const args = ["notify", "--title", payload.title]
+	const args = ["notify", "--title", sanitizeNotificationText(payload.title)]
 
 	const subtitle = payload.subtitle?.trim()
 	if (subtitle) {
-		args.push("--subtitle", subtitle)
+		args.push("--subtitle", sanitizeNotificationText(subtitle))
 	}
 
-	args.push("--body", payload.body)
+	args.push("--body", sanitizeNotificationText(payload.body))
 
 	return args
 }

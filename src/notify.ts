@@ -19,15 +19,14 @@
  * - Linux: notify-send (native desktop notifications)
  */
 
-import * as fs from "node:fs/promises"
-import * as os from "node:os"
-import * as path from "node:path"
 import type { Plugin } from "@opencode-ai/plugin"
 import type { Event } from "@opencode-ai/sdk"
 // @ts-expect-error - installed at runtime by OCX
 import detectTerminal from "detect-terminal"
 // @ts-expect-error - installed at runtime by OCX
 import notifier from "node-notifier"
+import { loadConfig, type NotifyConfig } from "./config"
+import { escapeAppleScript } from "./kdco-primitives/shell"
 import type { OpencodeClient } from "./kdco-primitives/types"
 import { sendDesktopNotificationByPlatform, sendNotificationWithFallback } from "./notify/backend"
 import {
@@ -43,45 +42,12 @@ import {
 	getCmuxSessionStatusText,
 } from "./notify/status"
 import { parseOscTitleContext, writeOscTitleBestEffort } from "./notify/title"
-
-interface NotifyConfig {
-	enabled: boolean
-	notifyChildSessions: boolean
-	notifyOnIdle: boolean
-	sounds: {
-		idle: string
-		error: string
-		permission: string
-		question?: string
-	}
-	quietHours: {
-		enabled: boolean
-		start: string
-		end: string
-	}
-	terminal?: string
-}
+import { resolveTrustedExecutable, sanitizeNotificationText } from "./security"
 
 interface TerminalInfo {
 	name: string | null
 	bundleId: string | null
 	processName: string | null
-}
-
-const DEFAULT_CONFIG: NotifyConfig = {
-	enabled: true,
-	notifyChildSessions: false,
-	notifyOnIdle: true,
-	sounds: {
-		idle: "Glass",
-		error: "Basso",
-		permission: "Submarine",
-	},
-	quietHours: {
-		enabled: false,
-		start: "22:00",
-		end: "08:00",
-	},
 }
 
 // Terminal name to macOS process name mapping (for focus detection)
@@ -103,37 +69,7 @@ const TERMINAL_PROCESS_NAMES: Record<string, string> = {
 // ==========================================
 // CONFIGURATION
 // ==========================================
-
-async function loadConfig(): Promise<NotifyConfig> {
-	const configDir = path.join(os.homedir(), ".config", "opencode")
-	const preferredPath = path.join(configDir, "opencode-notify.json")
-	const legacyPath = path.join(configDir, "kdco-notify.json")
-
-	const candidates = [preferredPath, legacyPath]
-	for (const configPath of candidates) {
-		try {
-			const content = await fs.readFile(configPath, "utf8")
-			const userConfig = JSON.parse(content) as Partial<NotifyConfig>
-
-			return {
-				...DEFAULT_CONFIG,
-				...userConfig,
-				sounds: {
-					...DEFAULT_CONFIG.sounds,
-					...userConfig.sounds,
-				},
-				quietHours: {
-					...DEFAULT_CONFIG.quietHours,
-					...userConfig.quietHours,
-				},
-			}
-		} catch {
-			continue
-		}
-	}
-
-	return DEFAULT_CONFIG
-}
+// Strict configuration loading and validation lives in ./config.ts
 
 // ==========================================
 // TERMINAL DETECTION (macOS)
@@ -155,7 +91,7 @@ async function runOsascript(script: string): Promise<string | null> {
 }
 
 async function getBundleId(appName: string): Promise<string | null> {
-	return runOsascript(`id of application "${appName}"`)
+	return runOsascript(`id of application "${escapeAppleScript(appName)}"`)
 }
 
 async function getFrontmostApp(): Promise<string | null> {
@@ -440,7 +376,7 @@ async function handleSessionIdle(
 	try {
 		const session = await client.session.get({ path: { id: sessionID } })
 		if (session.data?.title) {
-			sessionTitle = session.data.title.slice(0, 50)
+			sessionTitle = sanitizeNotificationText(session.data.title, 50)
 		}
 	} catch {
 		// Use default title
@@ -480,7 +416,7 @@ async function handleSessionError(
 	// Check if terminal is focused (suppress notification if user is already looking)
 	if (await isTerminalFocused(terminalInfo)) return
 
-	const errorMessage = error?.slice(0, 100) || "Something went wrong"
+	const errorMessage = sanitizeNotificationText(error?.slice(0, 100) || "Something went wrong", 100)
 
 	await sendNotification(
 		{
@@ -547,14 +483,17 @@ async function handleQuestionAsked(
 // ==========================================
 
 async function getX11ActiveWindowClass(): Promise<string | null> {
+	const xpropPath = resolveTrustedExecutable("xprop")
+	if (!xpropPath) return null
+
 	try {
-		const rootProc = Bun.spawn(["xprop", "-root", "_NET_ACTIVE_WINDOW"], { stdout: "pipe", stderr: "pipe" })
+		const rootProc = Bun.spawn([xpropPath, "-root", "_NET_ACTIVE_WINDOW"], { stdout: "pipe", stderr: "pipe" })
 		const rootOutput = await new Response(rootProc.stdout).text()
 		const match = rootOutput.match(/#\s*(0x[0-9a-fA-F]+|\d+)/)
 		if (!match) return null
 
 		const windowId = match[1] as string
-		const classProc = Bun.spawn(["xprop", "-id", windowId, "WM_CLASS"], { stdout: "pipe", stderr: "pipe" })
+		const classProc = Bun.spawn([xpropPath, "-id", windowId, "WM_CLASS"], { stdout: "pipe", stderr: "pipe" })
 		const classOutput = await new Response(classProc.stdout).text()
 		const classes = classOutput.match(/"([^"]+)"/g)
 		if (!classes || classes.length === 0) return null
@@ -569,8 +508,11 @@ async function getX11ActiveWindowClass(): Promise<string | null> {
 }
 
 async function getWaylandActiveWindowClass(): Promise<string | null> {
+	const swaymsgPath = resolveTrustedExecutable("swaymsg")
+	if (!swaymsgPath) return null
+
 	try {
-		const proc = Bun.spawn(["swaymsg", "-t", "get_tree"], { stdout: "pipe", stderr: "pipe" })
+		const proc = Bun.spawn([swaymsgPath, "-t", "get_tree"], { stdout: "pipe", stderr: "pipe" })
 		const output = await new Response(proc.stdout).text()
 		const data = JSON.parse(output) as unknown
 
@@ -603,8 +545,11 @@ async function getWaylandActiveWindowClass(): Promise<string | null> {
 }
 
 async function getHyprlandActiveWindowClass(): Promise<string | null> {
+	const hyprctlPath = resolveTrustedExecutable("hyprctl")
+	if (!hyprctlPath) return null
+
 	try {
-		const proc = Bun.spawn(["hyprctl", "activewindow", "-j"], { stdout: "pipe", stderr: "pipe" })
+		const proc = Bun.spawn([hyprctlPath, "activewindow", "-j"], { stdout: "pipe", stderr: "pipe" })
 		const output = await new Response(proc.stdout).text()
 		const data = JSON.parse(output) as { class?: string }
 		return data.class ?? null
@@ -627,7 +572,7 @@ async function isTerminalFocused(terminalInfo: TerminalInfo): Promise<boolean> {
 
 		const lowerActive = activeClass.toLowerCase()
 		const lowerProcess = terminalInfo.processName.toLowerCase()
-		return lowerActive === lowerProcess || lowerActive.includes(lowerProcess)
+		return lowerActive === lowerProcess
 	}
 
 	const frontmost = await getFrontmostApp()
