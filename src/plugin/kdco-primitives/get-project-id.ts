@@ -86,7 +86,10 @@ export async function getProjectId(projectRoot: string, client?: OpencodeClient)
 		}
 
 		// Resolve path (handles both relative and absolute)
-		const gitdirPath = match[1].trim()
+		const gitdirPath = match[1]?.trim()
+		if (gitdirPath === undefined) {
+			throw new Error(`getProjectId: .git file exists but has invalid format at ${gitPath}`)
+		}
 		const resolvedGitdir = path.resolve(projectRoot, gitdirPath)
 
 		// The gitdir contains a 'commondir' file pointing to shared .git
@@ -149,8 +152,9 @@ export async function getProjectId(projectRoot: string, client?: OpencodeClient)
 				.map((x) => x.trim())
 				.sort()
 
-			if (roots.length > 0 && /^[a-f0-9]{40}$/i.test(roots[0])) {
-				const projectId = roots[0]
+			const rootSha = roots[0]
+			if (rootSha !== undefined && /^[a-f0-9]{40}$/i.test(rootSha)) {
+				const projectId = rootSha
 				// Cache the result
 				try {
 					await Bun.write(cacheFile, projectId)
