@@ -1,0 +1,460 @@
+{
+  "version": 8,
+  "created": "2026-09-06T02:49:52+00:00",
+  "updated": "2026-09-06T02:49:52+00:00",
+  "queue_order": [
+    "subjective::abstraction_fitness",
+    "subjective::ai_generated_debt",
+    "subjective::api_surface_coherence",
+    "subjective::authorization_consistency",
+    "subjective::contract_coherence",
+    "subjective::convention_outlier",
+    "subjective::cross_module_architecture",
+    "subjective::dependency_health",
+    "subjective::design_coherence",
+    "subjective::error_consistency",
+    "subjective::high_level_elegance",
+    "subjective::incomplete_migration",
+    "subjective::initialization_coupling",
+    "subjective::logic_clarity",
+    "subjective::low_level_elegance",
+    "subjective::mid_level_elegance",
+    "subjective::naming_quality",
+    "subjective::package_organization",
+    "subjective::test_strategy",
+    "subjective::type_safety",
+    "logs::src/kdco-primitives/log-warn.ts::${service}",
+    "logs::src/plugin/kdco-primitives/log-warn.ts::${service}",
+    "unused::src/kdco-primitives/cmux.ts::env:11",
+    "unused::src/notify/title.ts::title:10"
+  ],
+  "deferred": [],
+  "skipped": {},
+  "active_cluster": null,
+  "overrides": {
+    "logs::src/kdco-primitives/log-warn.ts::${service}": {
+      "issue_id": "logs::src/kdco-primitives/log-warn.ts::${service}",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/logs",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "logs::src/plugin/kdco-primitives/log-warn.ts::${service}": {
+      "issue_id": "logs::src/plugin/kdco-primitives/log-warn.ts::${service}",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/logs",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "unused::src/kdco-primitives/cmux.ts::env:11": {
+      "issue_id": "unused::src/kdco-primitives/cmux.ts::env:11",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/unused",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "unused::src/notify/title.ts::title:10": {
+      "issue_id": "unused::src/notify/title.ts::title:10",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/unused",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/kdco-primitives/temp.ts::untested_module": {
+      "issue_id": "test_coverage::src/kdco-primitives/temp.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/plugin/kdco-primitives/log-warn.ts::untested_module": {
+      "issue_id": "test_coverage::src/plugin/kdco-primitives/log-warn.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/kdco-primitives/cmux.ts::untested_module": {
+      "issue_id": "test_coverage::src/kdco-primitives/cmux.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/plugin/kdco-primitives/get-project-id.ts::untested_module": {
+      "issue_id": "test_coverage::src/plugin/kdco-primitives/get-project-id.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/kdco-primitives/mutex.ts::untested_module": {
+      "issue_id": "test_coverage::src/kdco-primitives/mutex.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/plugin/kdco-primitives/terminal-detect.ts::untested_module": {
+      "issue_id": "test_coverage::src/plugin/kdco-primitives/terminal-detect.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/notify/status.ts::untested_module": {
+      "issue_id": "test_coverage::src/notify/status.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/kdco-primitives/get-project-id.ts::untested_module": {
+      "issue_id": "test_coverage::src/kdco-primitives/get-project-id.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/kdco-primitives/log-warn.ts::untested_module": {
+      "issue_id": "test_coverage::src/kdco-primitives/log-warn.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/plugin/kdco-primitives/mutex.ts::untested_module": {
+      "issue_id": "test_coverage::src/plugin/kdco-primitives/mutex.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/kdco-primitives/with-timeout.ts::untested_module": {
+      "issue_id": "test_coverage::src/kdco-primitives/with-timeout.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/notify/cmux.ts::untested_module": {
+      "issue_id": "test_coverage::src/notify/cmux.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/notify.ts::untested_module": {
+      "issue_id": "test_coverage::src/notify.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/plugin/kdco-primitives/shell.ts::untested_module": {
+      "issue_id": "test_coverage::src/plugin/kdco-primitives/shell.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/plugin/kdco-primitives/temp.ts::untested_module": {
+      "issue_id": "test_coverage::src/plugin/kdco-primitives/temp.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/notify/backend.ts::untested_module": {
+      "issue_id": "test_coverage::src/notify/backend.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/notify/title.ts::untested_module": {
+      "issue_id": "test_coverage::src/notify/title.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/plugin/kdco-primitives/with-timeout.ts::untested_module": {
+      "issue_id": "test_coverage::src/plugin/kdco-primitives/with-timeout.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "test_coverage::src/kdco-primitives/terminal-detect.ts::untested_module": {
+      "issue_id": "test_coverage::src/kdco-primitives/terminal-detect.ts::untested_module",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/test_coverage-untested_module",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::abstraction_fitness": {
+      "issue_id": "subjective::abstraction_fitness",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::ai_generated_debt": {
+      "issue_id": "subjective::ai_generated_debt",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::api_surface_coherence": {
+      "issue_id": "subjective::api_surface_coherence",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::authorization_consistency": {
+      "issue_id": "subjective::authorization_consistency",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::contract_coherence": {
+      "issue_id": "subjective::contract_coherence",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::convention_outlier": {
+      "issue_id": "subjective::convention_outlier",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::cross_module_architecture": {
+      "issue_id": "subjective::cross_module_architecture",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::dependency_health": {
+      "issue_id": "subjective::dependency_health",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::design_coherence": {
+      "issue_id": "subjective::design_coherence",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::error_consistency": {
+      "issue_id": "subjective::error_consistency",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::high_level_elegance": {
+      "issue_id": "subjective::high_level_elegance",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::incomplete_migration": {
+      "issue_id": "subjective::incomplete_migration",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::initialization_coupling": {
+      "issue_id": "subjective::initialization_coupling",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::logic_clarity": {
+      "issue_id": "subjective::logic_clarity",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::low_level_elegance": {
+      "issue_id": "subjective::low_level_elegance",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::mid_level_elegance": {
+      "issue_id": "subjective::mid_level_elegance",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::naming_quality": {
+      "issue_id": "subjective::naming_quality",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::package_organization": {
+      "issue_id": "subjective::package_organization",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::test_strategy": {
+      "issue_id": "subjective::test_strategy",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    },
+    "subjective::type_safety": {
+      "issue_id": "subjective::type_safety",
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-09-06T02:49:52+00:00"
+    }
+  },
+  "clusters": {
+    "auto/logs": {
+      "name": "auto/logs",
+      "description": "Remove 2 logs issues",
+      "issue_ids": [
+        "logs::src/kdco-primitives/log-warn.ts::${service}",
+        "logs::src/plugin/kdco-primitives/log-warn.ts::${service}"
+      ],
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "updated_at": "2026-09-06T02:49:52+00:00",
+      "auto": true,
+      "cluster_key": "auto::logs",
+      "action": "desloppify autofix debug-logs --dry-run",
+      "execution_status": "active",
+      "user_modified": false,
+      "action_type": "auto_fix",
+      "execution_policy": "ephemeral_autopromote"
+    },
+    "auto/unused": {
+      "name": "auto/unused",
+      "description": "Remove 2 unused issues",
+      "issue_ids": [
+        "unused::src/kdco-primitives/cmux.ts::env:11",
+        "unused::src/notify/title.ts::title:10"
+      ],
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "updated_at": "2026-09-06T02:49:52+00:00",
+      "auto": true,
+      "cluster_key": "auto::unused",
+      "action": "desloppify autofix unused-imports --dry-run",
+      "execution_status": "active",
+      "user_modified": false,
+      "action_type": "auto_fix",
+      "execution_policy": "ephemeral_autopromote"
+    },
+    "auto/test_coverage-untested_module": {
+      "name": "auto/test_coverage-untested_module",
+      "description": "Fix 19 test coverage issues",
+      "issue_ids": [
+        "test_coverage::src/kdco-primitives/temp.ts::untested_module",
+        "test_coverage::src/plugin/kdco-primitives/log-warn.ts::untested_module",
+        "test_coverage::src/kdco-primitives/cmux.ts::untested_module",
+        "test_coverage::src/plugin/kdco-primitives/get-project-id.ts::untested_module",
+        "test_coverage::src/kdco-primitives/mutex.ts::untested_module",
+        "test_coverage::src/plugin/kdco-primitives/terminal-detect.ts::untested_module",
+        "test_coverage::src/notify/status.ts::untested_module",
+        "test_coverage::src/kdco-primitives/get-project-id.ts::untested_module",
+        "test_coverage::src/kdco-primitives/log-warn.ts::untested_module",
+        "test_coverage::src/plugin/kdco-primitives/mutex.ts::untested_module",
+        "test_coverage::src/kdco-primitives/with-timeout.ts::untested_module",
+        "test_coverage::src/notify/cmux.ts::untested_module",
+        "test_coverage::src/notify.ts::untested_module",
+        "test_coverage::src/plugin/kdco-primitives/shell.ts::untested_module",
+        "test_coverage::src/plugin/kdco-primitives/temp.ts::untested_module",
+        "test_coverage::src/notify/backend.ts::untested_module",
+        "test_coverage::src/notify/title.ts::untested_module",
+        "test_coverage::src/plugin/kdco-primitives/with-timeout.ts::untested_module",
+        "test_coverage::src/kdco-primitives/terminal-detect.ts::untested_module"
+      ],
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "updated_at": "2026-09-06T02:49:52+00:00",
+      "auto": true,
+      "cluster_key": "detector::test_coverage::untested_module",
+      "action": "review test coverage gaps",
+      "execution_status": "review",
+      "user_modified": false,
+      "action_type": "refactor",
+      "execution_policy": "planned_only"
+    },
+    "auto/initial-review": {
+      "name": "auto/initial-review",
+      "description": "Initial review of 20 unscored subjective dimensions",
+      "issue_ids": [
+        "subjective::abstraction_fitness",
+        "subjective::ai_generated_debt",
+        "subjective::api_surface_coherence",
+        "subjective::authorization_consistency",
+        "subjective::contract_coherence",
+        "subjective::convention_outlier",
+        "subjective::cross_module_architecture",
+        "subjective::dependency_health",
+        "subjective::design_coherence",
+        "subjective::error_consistency",
+        "subjective::high_level_elegance",
+        "subjective::incomplete_migration",
+        "subjective::initialization_coupling",
+        "subjective::logic_clarity",
+        "subjective::low_level_elegance",
+        "subjective::mid_level_elegance",
+        "subjective::naming_quality",
+        "subjective::package_organization",
+        "subjective::test_strategy",
+        "subjective::type_safety"
+      ],
+      "created_at": "2026-09-06T02:49:52+00:00",
+      "updated_at": "2026-09-06T02:49:52+00:00",
+      "auto": true,
+      "cluster_key": "subjective::unscored",
+      "action": "desloppify review --prepare --dimensions abstraction_fitness,ai_generated_debt,api_surface_coherence,authorization_consistency,contract_coherence,convention_outlier,cross_module_architecture,dependency_health,design_coherence,error_consistency,high_level_elegance,incomplete_migration,initialization_coupling,logic_clarity,low_level_elegance,mid_level_elegance,naming_quality,package_organization,test_strategy,type_safety",
+      "execution_status": "review",
+      "user_modified": false,
+      "action_type": "manual_fix",
+      "execution_policy": "planned_only"
+    }
+  },
+  "superseded": {},
+  "promoted_ids": [],
+  "plan_start_scores": {
+    "strict": 15.9,
+    "overall": 15.9,
+    "objective": 63.6,
+    "verified": 63.6
+  },
+  "refresh_state": {
+    "_subjective_migration_pruned": true,
+    "lifecycle_phase": "plan"
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-09-06T02:49:52+00:00",
+      "action": "sync_subjective",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "changes": true
+      }
+    },
+    {
+      "timestamp": "2026-09-06T02:49:52+00:00",
+      "action": "auto_cluster",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "changes": true
+      }
+    },
+    {
+      "timestamp": "2026-09-06T02:49:52+00:00",
+      "action": "sync_lifecycle_phase",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "phase": "review_initial"
+      }
+    },
+    {
+      "timestamp": "2026-09-06T02:49:52+00:00",
+      "action": "seed_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    }
+  ],
+  "epic_triage_meta": {},
+  "commit_log": [],
+  "uncommitted_issues": [],
+  "commit_tracking_branch": null,
+  "scan_count_at_plan_start": 1
+}
